@@ -8,6 +8,26 @@ select
     aci.company_name as client,
     abi.company_name as brand,
 
+    (case
+        when ati.CREATED_BY   is not null then ati.CREATED_BY
+        else 'No information available'
+    end) as created_by,
+
+    (case
+        when ati.REGION   is not null then ati.REGION
+        else 'No information available'
+    end) as region,
+
+     (case
+        when ata.ASSIGNED_ENGG_ID  is not null then ata.ASSIGNED_ENGG_ID
+        else 'No information available'
+     end) as assigned_to,
+
+    (case
+        when ata.ASSIGNED_TYPE  is not null then ata.ASSIGNED_TYPE
+        else 'No information available'
+     end) as assigned_type,
+
     ats.cat_name as ticket_status,       /* problem increase 5.7k to 7.8k*/
     stt.type_name as ticket_type,        /* problem increase 5.7k to 7.8k*/
     atf.DATE  as last_follow_up_date,
@@ -40,6 +60,8 @@ from adm_ticket_info ati
 
 
      left join smr_ticket_type stt on stt.TEMP_ID = ati.TICKET_TYPE
+     left join (select * from adm_ticket_assigned where TEMP_ID in (
+                select min(adm_ticket_assigned.TEMP_ID) from adm_ticket_assigned group by adm_ticket_assigned.TICKET_ID)) ata on ata.TICKET_ID = ati.TEMP_ID
 
      left join (select * from adm_ticket_followups where F_ID in (
                 select max(F_ID) from adm_ticket_followups group by TICKET_ID)) atf on atf.TICKET_ID = ati.TEMP_ID;
